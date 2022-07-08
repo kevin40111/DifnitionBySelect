@@ -52,6 +52,7 @@ function drawDialog(head, text, x, y)
         dialog.style.fontSize = 'large'
         dialog.style.padding = '10px'
         dialog.style.fontWeight = 'bold'
+        dialog.style.borderRadius = '15px'
 
         dialog.innerHTML = text
 
