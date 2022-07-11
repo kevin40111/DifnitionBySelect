@@ -3,7 +3,6 @@
   "description": "select word get definition immediately",
   "version": "1.0",
   "manifest_version": 3,
-  "permissions": ["scripting"],
   "background": {
     "service_worker": "background.js"
   },

@@ -53,9 +53,10 @@ function drawDialog(head, text, x, y)
         dialog.style.padding = '10px'
         dialog.style.fontWeight = 'bold'
         dialog.style.borderRadius = '15px'
+        dialog.style.color="black"
 
         dialog.innerHTML = text
 
-        dialog.insertAdjacentHTML('afterbegin', '<h2>'+ head +'</h2><hr>')
+        dialog.insertAdjacentHTML('afterbegin', '<h2 style="color:black!important">'+ head +'</h2><hr>')
         document.getElementsByTagName('body')[0].appendChild(dialog)
 }
