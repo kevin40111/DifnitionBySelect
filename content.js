@@ -1,5 +1,11 @@
 
 
+document.addEventListener('keyup', function (e) {
+    if( e.key === "Escape" || evt.keyCode === 27) {
+        document.getElementById('my-translate')?.remove()
+    }
+});
+
 document.addEventListener('mouseup', showSelection);;
 
 async function showSelection(event)
