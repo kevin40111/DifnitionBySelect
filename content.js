@@ -45,24 +45,35 @@ async function showSelection(event)
     }
 }
 
-function drawDialog(head, text, x, y)
+function drawDialog(header, text, x, y)
 {
-    var dialog = document.createElement("div");
-        dialog.setAttribute('id', 'my-translate');
-        dialog.style.fontFamily = 'monospace'
-        dialog.style.left = x + 'px'
-        dialog.style.zIndex = '999'
-        dialog.style.top = y + 20 + 'px'
-        dialog.style.position = 'absolute'
-        dialog.style.backgroundColor = 'wheat'
-        dialog.style.fontSize = 'large'
-        dialog.style.padding = '10px'
-        dialog.style.fontWeight = 'bold'
-        dialog.style.borderRadius = '15px'
-        dialog.style.color="black"
+    var container = document.createElement("div")
+        container.setAttribute('id', 'my-translate')
+        container.style.fontFamily = 'monospace'
+        container.style.left = x + 'px'
+        container.style.zIndex = '999'
+        container.style.top = y + 20 + 'px'
+        container.style.position = 'absolute'
+        container.style.backgroundColor = 'wheat'
+        container.style.fontSize = 'large'
+        container.style.padding = '10px'
+        container.style.fontWeight = 'bold'
+        container.style.borderRadius = '15px'
+        container.style.color="black"
+        container.style.textAlign="left"
 
-        dialog.innerHTML = text
+    var head = document.createElement('h2')
+        head.style.color = 'black!important'
+        head.style.color = 'black'
 
-        dialog.insertAdjacentHTML('afterbegin', '<h2 style="color:black!important">'+ head +'</h2><hr>')
-        document.getElementsByTagName('body')[0].appendChild(dialog)
+        head.innerHTML = header
+
+    var content = document.createElement("div");
+        content.innerHTML = text
+
+        container.appendChild(head)
+        container.appendChild(document.createElement("hr"))
+        container.appendChild(content)
+
+    document.getElementsByTagName('body')[0].appendChild(container)
 }
