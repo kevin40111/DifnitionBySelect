@@ -1,0 +1,15 @@
+kind: pipeline
+name: default
+
+steps:
+- name: test
+  image: node
+  commands:
+  - cat $GPROJECT > temp.txt
+  environment:
+    PROJECT: Hellow
+
+- name: install
+  image: composer
+  commands:
+    - composer install

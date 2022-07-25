@@ -21,7 +21,7 @@ async function showSelection(event)
                 search: search
             },
             function (value) {
-                var count = 3
+                var count = 4
                 var head = ''
                 var text = ''
                 var object = value
