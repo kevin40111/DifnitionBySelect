@@ -5,11 +5,16 @@ steps:
 - name: test
   image: node
   commands:
-  - cat $GPROJECT > temp.txt
-  environment:
-    PROJECT: Hellow
+    - echo start
 
 - name: install
   image: composer
   commands:
     - composer install
+  environment:
+    action:
+      from_secret: action
+trigger:
+  branch:
+    - dev
+
