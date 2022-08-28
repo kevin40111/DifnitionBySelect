@@ -1,5 +1,3 @@
-
-
 document.addEventListener('keyup', function (e) {
     if( e.key === "Escape" || evt.keyCode === 27) {
         document.getElementById('my-translate')?.remove()
@@ -8,16 +6,21 @@ document.addEventListener('keyup', function (e) {
 
 document.addEventListener('mouseup', showSelection);;
 
+var definition
+var imgIndex
+
 async function showSelection(event)
 {
-    document.getElementById('my-translate')?.remove()
+    imgIndex = 0
+    definition = {}
 
+    document.getElementById('my-translate')?.remove()
     var search = window.getSelection().toString()
     search = search.trim()
     if (search.length > 0 && /^[A-Za-z]*$/.test(search)) {
-        chrome.runtime.sendMessage(
+        await chrome.runtime.sendMessage(
             {
-                contentScriptQuery: 'fetch',
+                contentScriptQuery: 'fetchDefinition',
                 search: search
             },
             function (value) {
@@ -39,13 +42,38 @@ async function showSelection(event)
                     if (count <= 0 ) break
                 }
 
-                drawDialog(head, text, event.pageX, event.pageY)
+                Object.assign(definition, {
+                    header:head,
+                    text:text,
+                    x: event.pageX,
+                    y: event.pageY,
+                })
+            }
+        )
+
+        await chrome.runtime.sendMessage(
+            {
+                contentScriptQuery: 'fetchImage',
+                search: search
+            },
+            function (value) {
+                var parser = new DOMParser();
+                var htmlDoc = parser.parseFromString(value, 'text/html');
+                var images = Array.from(htmlDoc.getElementsByClassName('rg_i'))
+
+                definition.images = images.filter(element => {
+                    return element.dataset.src
+                }).map((element) => {
+                    return element.dataset.src
+                });
+
+                drawDialog(definition.header, definition.text, definition.x, definition.y, definition.images)
             }
         )
     }
 }
 
-function drawDialog(header, text, x, y)
+function drawDialog(header, text, x, y, images)
 {
     var container = document.createElement("div")
         container.setAttribute('id', 'my-translate')
@@ -61,19 +89,49 @@ function drawDialog(header, text, x, y)
         container.style.borderRadius = '15px'
         container.style.color="black"
         container.style.textAlign="left"
+        container.style.maxWidth='600px'
 
-    var head = document.createElement('h2')
-        head.style.color = 'black!important'
-        head.style.color = 'black'
-
-        head.innerHTML = header
-
-    var content = document.createElement("div");
-        content.innerHTML = text
-
-        container.appendChild(head)
-        container.appendChild(document.createElement("hr"))
-        container.appendChild(content)
+        container.appendChild(createHeader(header))
+        container.appendChild(createImages(images))
+        container.appendChild(createContent(text))
 
     document.getElementsByTagName('body')[0].appendChild(container)
+}
+
+function createHeader(header)
+{
+    let _head = document.createElement('h2')
+        _head.style.color = 'black!important'
+
+        _head.innerHTML = header
+
+    return _head
+}
+
+function createContent(text)
+{
+    let _content = document.createElement("div");
+    _content.style.fontSize='16px!important'
+    _content.innerHTML = text
+
+    return _content
+}
+
+function createImages(images)
+{
+    let container = document.createElement("div")
+    container.style.height='200px'
+    container.style.float='left'
+    container.style.padding='5px'
+    container.style.overflowY='auto'
+
+    images.forEach(url => {
+        _img = document.createElement("img");
+        _img.style.maxWidth='250px'
+        _img.src = url
+
+        container.appendChild(_img)
+    });
+
+    return container
 }
