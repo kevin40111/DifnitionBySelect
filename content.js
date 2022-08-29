@@ -6,24 +6,21 @@ document.addEventListener('keyup', function (e) {
 
 document.addEventListener('mouseup', showSelection);;
 
-var definition
-var imgIndex
 
-async function showSelection(event)
+
+function showSelection(event)
 {
-    imgIndex = 0
-    definition = {}
+    let definition = {}
 
     document.getElementById('my-translate')?.remove()
     var search = window.getSelection().toString()
     search = search.trim()
     if (search.length > 0 && /^[A-Za-z]*$/.test(search)) {
-        await chrome.runtime.sendMessage(
+        var difinition = chrome.runtime.sendMessage(
             {
                 contentScriptQuery: 'fetchDefinition',
                 search: search
-            },
-            function (value) {
+            }).then(value => {
                 var count = 4
                 var head = ''
                 var text = ''
@@ -48,15 +45,14 @@ async function showSelection(event)
                     x: event.pageX,
                     y: event.pageY,
                 })
-            }
-        )
+            })
 
-        await chrome.runtime.sendMessage(
+
+        var image = chrome.runtime.sendMessage(
             {
                 contentScriptQuery: 'fetchImage',
                 search: search
-            },
-            function (value) {
+            }).then(value=> {
                 var parser = new DOMParser();
                 var htmlDoc = parser.parseFromString(value, 'text/html');
                 var images = Array.from(htmlDoc.getElementsByClassName('rg_i'))
@@ -66,21 +62,23 @@ async function showSelection(event)
                 }).map((element) => {
                     return element.dataset.src
                 });
+            })
 
-                drawDialog(definition.header, definition.text, definition.x, definition.y, definition.images)
-            }
-        )
+
+        Promise.all([difinition, image]).then(value => {
+            drawDialog(definition)
+        })
     }
 }
 
-function drawDialog(header, text, x, y, images)
+async function drawDialog(definition)
 {
     var container = document.createElement("div")
         container.setAttribute('id', 'my-translate')
         container.style.fontFamily = 'monospace'
-        container.style.left = x + 'px'
+        container.style.left = definition.x + 'px'
         container.style.zIndex = '999'
-        container.style.top = y + 20 + 'px'
+        container.style.top = definition.y + 20 + 'px'
         container.style.position = 'absolute'
         container.style.backgroundColor = 'wheat'
         container.style.fontSize = 'large'
@@ -91,9 +89,9 @@ function drawDialog(header, text, x, y, images)
         container.style.textAlign="left"
         container.style.maxWidth='600px'
 
-        container.appendChild(createHeader(header))
-        container.appendChild(createImages(images))
-        container.appendChild(createContent(text))
+        container.appendChild(createHeader(definition.header))
+        container.appendChild(createImages(definition.images))
+        container.appendChild(createContent(definition.text))
 
     document.getElementsByTagName('body')[0].appendChild(container)
 }
