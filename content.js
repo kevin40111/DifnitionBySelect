@@ -1,4 +1,5 @@
 var _openDialog = true
+var _search = null
 
 document.addEventListener('keyup', function (e) {
     if (e.key === "Escape" || e.keyCode === 27) {
@@ -18,12 +19,17 @@ document.addEventListener('keyup', function (e) {
 document.addEventListener('mouseup', showSelection);;
 
 function showSelection(event) {
+
     let definition = {}
 
     document.getElementById('my-translate')?.remove()
     var search = window.getSelection().toString()
     search = search.trim()
-    if (search.length > 0 && /^[A-Za-z]*$/.test(search) && _openDialog) {
+
+    if(_search == search || !_openDialog) return 0
+
+    _search = search
+    if (search.length > 0 && /^[A-Za-z]*$/.test(search)) {
         var difinition = chrome.runtime.sendMessage({
             contentScriptQuery: 'fetchDefinition',
             search: search
@@ -93,6 +99,7 @@ async function drawDialog(definition) {
     container.style.color = "black"
     container.style.textAlign = "left"
     container.style.maxWidth = '600px'
+    container.style.display = 'block !important'
 
     container.appendChild(createHeader(definition.header))
     container.appendChild(createImages(definition.images))
@@ -120,17 +127,23 @@ function createContent(text) {
 
 function createImages(images) {
     let container = document.createElement("div")
-    container.style.height = '200px'
+    container.style.height = '250px'
     container.style.float = 'left'
-    container.style.padding = '5px'
+    container.style.width = '100%'
     container.style.overflowY = 'auto'
 
     images.forEach(url => {
+        _temp = document.createElement("div");
+        _temp.style.float="left"
+        _temp.style.maxWidth="300px"
+        _temp.style.padding="5px"
+
         _img = document.createElement("img");
-        _img.style.maxWidth = '250px'
         _img.src = url
 
-        container.appendChild(_img)
+        _temp.appendChild(_img)
+
+        container.appendChild(_temp)
     });
 
     return container
