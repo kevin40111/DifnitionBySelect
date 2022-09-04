@@ -1,5 +1,5 @@
-var _openDialog = true
-var _search = null
+var OpenDialog = true
+var Search = null
 
 document.addEventListener('keyup', function (e) {
     if (e.key === "Escape" || e.keyCode === 27) {
@@ -7,8 +7,8 @@ document.addEventListener('keyup', function (e) {
     }
 
     if ((e.ctrlKey + e.shiftKey + (e.key=='s' || e.key=='S')) == 3 ) {
-        _openDialog = (!_openDialog)
-        if (_openDialog) {
+        OpenDialog = (!OpenDialog)
+        if (OpenDialog) {
             alert('dialog open')
         } else {
             alert('dialog close')
@@ -23,25 +23,26 @@ function showSelection(event) {
     let definition = {}
 
     document.getElementById('my-translate')?.remove()
-    var search = window.getSelection().toString()
+    let search = window.getSelection().toString()
     search = search.trim()
 
-    if(_search == search || !_openDialog) return 0
+    if(Search == search || !OpenDialog) return 0
 
-    _search = search
+    Search = search
     if (search.length > 0 && /^[A-Za-z]*$/.test(search)) {
-        var difinition = chrome.runtime.sendMessage({
+        let difinition = chrome.runtime.sendMessage({
             contentScriptQuery: 'fetchDefinition',
             search: search
         }).then(value => {
-            var count = 4
-            var head = ''
-            var text = ''
-            var object = value
-            var parser = new DOMParser();
-            var htmlDoc = parser.parseFromString(object, 'text/html');
-            var list = htmlDoc.getElementsByClassName('def ddef_d db')
-            var kk = htmlDoc.getElementsByClassName('ipa dipa lpr-2 lpl-1')
+            let count = 4
+            let head = ''
+            let text = ''
+            let object = value
+            let parser = new DOMParser();
+            let htmlDoc = parser.parseFromString(object, 'text/html');
+            let list = htmlDoc.getElementsByClassName('def ddef_d db')
+            let kk = htmlDoc.getElementsByClassName('ipa dipa lpr-2 lpl-1')
+            let speech = htmlDoc.getElementsByClassName('pos dpos')[0]?.textContent
 
             head += kk[1]?.textContent
 
@@ -54,6 +55,7 @@ function showSelection(event) {
 
             Object.assign(definition, {
                 header: head,
+                speech: speech,
                 text: text,
                 x: event.pageX,
                 y: event.pageY,
@@ -61,13 +63,13 @@ function showSelection(event) {
         })
 
 
-        var image = chrome.runtime.sendMessage({
+        let image = chrome.runtime.sendMessage({
             contentScriptQuery: 'fetchImage',
             search: search
         }).then(value => {
-            var parser = new DOMParser();
-            var htmlDoc = parser.parseFromString(value, 'text/html');
-            var images = Array.from(htmlDoc.getElementsByClassName('rg_i'))
+            let parser = new DOMParser();
+            let htmlDoc = parser.parseFromString(value, 'text/html');
+            let images = Array.from(htmlDoc.getElementsByClassName('rg_i'))
 
             definition.images = images.filter(element => {
                 return element.dataset.src
@@ -84,7 +86,7 @@ function showSelection(event) {
 }
 
 async function drawDialog(definition) {
-    var container = document.createElement("div")
+    let container = document.createElement("div")
     container.setAttribute('id', 'my-translate')
     container.style.fontFamily = 'monospace'
     container.style.left = definition.x + 'px'
@@ -96,30 +98,40 @@ async function drawDialog(definition) {
     container.style.padding = '10px'
     container.style.fontWeight = 'bold'
     container.style.borderRadius = '15px'
-    container.style.color = "black"
+    container.style.color = "#000"
     container.style.textAlign = "left"
     container.style.maxWidth = '600px'
     container.style.display = 'block !important'
 
-    container.appendChild(createHeader(definition.header))
-    container.appendChild(createImages(definition.images))
-    container.appendChild(createContent(definition.text))
+    definition.header && container.appendChild(createHeader(definition.header))
+    definition.speech && container.appendChild(createSpeech(definition.speech))
+    definition.images && container.appendChild(createImages(definition.images))
+    definition.text && container.appendChild(createContent(definition.text))
 
     document.getElementsByTagName('body')[0].appendChild(container)
 }
 
 function createHeader(header) {
     let _head = document.createElement('h2')
-    _head.style.color = 'black!important'
-
+    _head.style.color = '#000'
+    _head.style.textAlign = 'left'
     _head.innerHTML = header
 
     return _head
 }
 
+function createSpeech(speech) {
+    let _speech = document.createElement('p')
+    _speech.style.color = '#999'
+
+    _speech.innerHTML = '(' + speech + ')'
+
+    return _speech
+}
+
 function createContent(text) {
     let _content = document.createElement("div");
-    _content.style.fontSize = '16px!important'
+    _content.style.fontSize = '16px'
     _content.innerHTML = text
 
     return _content
