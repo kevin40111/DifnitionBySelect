@@ -34,29 +34,28 @@ function showSelection(event) {
             contentScriptQuery: 'fetchDefinition',
             search: search
         }).then(value => {
-            let count = 4
             let head = ''
-            let text = ''
+            let text = []
             let object = value
             let parser = new DOMParser();
             let htmlDoc = parser.parseFromString(object, 'text/html');
             let list = htmlDoc.getElementsByClassName('def ddef_d db')
-            let kk = htmlDoc.getElementsByClassName('ipa dipa lpr-2 lpl-1')
+            let kk = htmlDoc.querySelector('.us.dpron-i .ipa.dipa.lpr-2.lpl-1')
             let speech = htmlDoc.getElementsByClassName('pos dpos')[0]?.textContent
 
-            head += kk[1]?.textContent
+            head += kk?.textContent
 
             for (let item of list) {
-                text += item.textContent
-                count = count - 1
-
-                if (count <= 0) break
+                if(!text.includes(item.textContent)) {
+                    text.push( "∙ " + item.textContent)
+                }
             }
 
+            console.log(kk, list, text)
             Object.assign(definition, {
                 header: head,
                 speech: speech,
-                text: text,
+                text: text.join("<br />"),
                 x: event.pageX,
                 y: event.pageY,
             })
