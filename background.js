@@ -1,5 +1,3 @@
-var data = null
-
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
         if (request.contentScriptQuery == 'fetchDefinition') {
