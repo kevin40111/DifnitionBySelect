@@ -1,34 +1,17 @@
-var OpenDialog = true
-var Search = null
-
 document.addEventListener('keyup', function (e) {
     if (e.key === "Escape" || e.keyCode === 27) {
         document.getElementById('my-translate')?.remove()
-    }
-
-    if ((e.ctrlKey + e.shiftKey + (e.key=='s' || e.key=='S')) == 3 ) {
-        OpenDialog = (!OpenDialog)
-        if (OpenDialog) {
-            alert('dialog open')
-        } else {
-            alert('dialog close')
-        }
     }
 });
 
 document.addEventListener('mouseup', showSelection);;
 
 function showSelection(event) {
+    document.getElementById('my-translate')?.remove()
 
     let definition = {}
+    let search = window.getSelection().toString().trim()
 
-    document.getElementById('my-translate')?.remove()
-    let search = window.getSelection().toString()
-    search = search.trim()
-
-    if(Search == search || !OpenDialog) return 0
-
-    Search = search
     if (search.length > 0 && /^[A-Za-z]*$/.test(search)) {
         let difinition = chrome.runtime.sendMessage({
             contentScriptQuery: 'fetchDefinition',
@@ -47,11 +30,14 @@ function showSelection(event) {
 
             for (let item of list) {
                 if(!text.includes(item.textContent)) {
-                    text.push( "∙ " + item.textContent)
+                    text.push(item.textContent)
                 }
             }
 
-            console.log(kk, list, text)
+            text = text.map((item) => {
+                return '. ' + item
+            })
+
             Object.assign(definition, {
                 header: head,
                 speech: speech,
@@ -85,6 +71,8 @@ function showSelection(event) {
 }
 
 async function drawDialog(definition) {
+    document.getElementById('my-translate')?.remove()
+
     let container = document.createElement("div")
     container.setAttribute('id', 'my-translate')
     container.style.fontFamily = 'monospace'
@@ -144,17 +132,17 @@ function createImages(images) {
     container.style.overflowY = 'auto'
 
     images.forEach(url => {
-        _temp = document.createElement("div");
-        _temp.style.float="left"
-        _temp.style.maxWidth="300px"
-        _temp.style.padding="5px"
+        let temp = document.createElement("div");
+        temp.style.float="left"
+        temp.style.maxWidth="300px"
+        temp.style.padding="5px"
 
-        _img = document.createElement("img");
-        _img.src = url
+        let img = document.createElement("img");
+        img.src = url
 
-        _temp.appendChild(_img)
+        temp.appendChild(img)
 
-        container.appendChild(_temp)
+        container.appendChild(temp)
     });
 
     return container
