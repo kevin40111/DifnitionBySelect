@@ -1,0 +1,19 @@
+{
+    "name": "root/difnition-by-select",
+    "autoload": {
+        "psr-4": {
+            "Root\\DifnitionBySelect\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "benno"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^10.2"
+    },
+    "require": {
+        "box/spout": "^3.3"
+    }
+}
