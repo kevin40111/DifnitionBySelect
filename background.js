@@ -11,7 +11,7 @@ chrome.runtime.onMessage.addListener(
         }
 
         if (request.contentScriptQuery == 'fetchImage') {
-            let url = 'https://www.google.com/search?q='+ request.search + '+meaning' +'&rlz=1C5CHFA_enTW772TW772&sxsrf=ALiCzsb1X5ysZDoTLy1SmBJr-6goe15jfw:1661697709572&source=lnms&tbm=isch&sa=X&ved=2ahUKEwjy0M-t4un5AhWYAqYKHVn_DO0Q_AUoAXoECAIQAw&biw=1280&bih=812&dpr=1&udm=2'
+            let url = 'https://images.search.yahoo.com/search/images;_ylt=Awr99rSToD5n2RgAxmuJzbkF;_ylu=c2VjA3NlYXJjaARzbGsDYnV0dG9u;_ylc=X1MDOTYwNjI4NTcEX3IDMgRmcgMEZnIyA3A6cyx2OmksbTpzYi10b3AEZ3ByaWQDWjZ4Z2NuY0pTUUdUOHM3RVNDMHp1QQRuX3JzbHQDMARuX3N1Z2cDMTAEb3JpZ2luA2ltYWdlcy5zZWFyY2gueWFob28uY29tBHBvcwMwBHBxc3RyAwRwcXN0cmwDMARxc3RybAM2BHF1ZXJ5A3JvdXRpbgR0X3N0bXADMTczMjE1NzYxNA--?q='+ request.search
             fetch(url, {}).then(function (data) {
                 var a = (data.text())
                 a.then(function (value) {

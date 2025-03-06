@@ -54,7 +54,7 @@ function showSelection(event) {
         }).then(value => {
             let parser = new DOMParser();
             let htmlDoc = parser.parseFromString(value, 'text/html');
-            let images = Array.from(htmlDoc.getElementsByClassName('rg_i'))
+            let images = Array.from(htmlDoc.getElementsByTagName('img'))
 
             definition.images = images.filter(element => {
                 return element.dataset.src
@@ -62,7 +62,6 @@ function showSelection(event) {
                 return element.dataset.src
             });
         })
-
 
         Promise.all([difinition, image]).then(value => {
             drawDialog(definition)
@@ -134,7 +133,7 @@ function createImages(images) {
     images.forEach(url => {
         let temp = document.createElement("div");
         temp.style.float="left"
-        temp.style.maxWidth="300px"
+        temp.style.maxWidth="500px"
         temp.style.padding="5px"
 
         let img = document.createElement("img");
