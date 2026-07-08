@@ -17,31 +17,59 @@ function showSelection(event) {
             contentScriptQuery: 'fetchDefinition',
             search: search
         }).then(value => {
-            let head = ''
-            let text = []
-            let object = value
             let parser = new DOMParser();
-            let htmlDoc = parser.parseFromString(object, 'text/html');
-            let list = htmlDoc.getElementsByClassName('def ddef_d db')
+            let htmlDoc = parser.parseFromString(value, 'text/html');
+            
+            // 抓取每個定義區塊（裡面會包含英文解釋和日文翻譯）
+            let defBlocks = htmlDoc.querySelectorAll('.def-block')
             let kk = htmlDoc.querySelector('.us.dpron-i .ipa.dipa.lpr-2.lpl-1')
             let speech = htmlDoc.getElementsByClassName('pos dpos')[0]?.textContent
 
-            head += kk?.textContent
+            // 設定標題為使用者選取的單字，如果有音標則一併加上
+            let head = search
+            if (kk && kk.textContent) {
+                head += ` <span style="font-size: 0.6em; color: #a0aec0; margin-left: 8px; font-weight: normal;">/${kk.textContent}/</span>`
+            }
 
-            for (let item of list) {
-                if(!text.includes(item.textContent)) {
-                    text.push(item.textContent)
+            let definitionsList = []
+            // 嘗試從 def-block 抓取英文與對應的翻譯
+            if (defBlocks.length > 0) {
+                for (let block of defBlocks) {
+                    let engDef = block.querySelector('.def.ddef_d.db')?.textContent?.trim()
+                    let translation = block.querySelector('.trans.dtrans')?.textContent?.trim()
+                    
+                    if (engDef) {
+                        let combinedText = engDef
+                        if (translation) {
+                            // 將劍橋字典的發音格式（例如：漢字（かんじ））轉換為 HTML ruby 標籤，顯示為上方的小字平假名
+                            translation = translation.replace(/([\u4e00-\u9faf]+)\s*[（\(]\s*([\u3040-\u30ff]+)\s*[）\)]/g, '<ruby>$1<rt style="font-size: 0.7em; color: #bee3f8;">$2</rt></ruby>')
+                            
+                            // 將日文翻譯加上不同顏色與樣式以利區分
+                            combinedText += `<br><span style="color: #90cdf4; font-weight: 500;">➔ ${translation}</span>`
+                        }
+                        if (!definitionsList.includes(combinedText)) {
+                            definitionsList.push(combinedText)
+                        }
+                    }
+                }
+            } else {
+                // 如果找不到 def-block (可能某些頁面結構不同)，退回舊版寫法
+                let list = htmlDoc.getElementsByClassName('def ddef_d db')
+                for (let item of list) {
+                    if(!definitionsList.includes(item.textContent)) {
+                        definitionsList.push(item.textContent)
+                    }
                 }
             }
 
-            text = text.map((item) => {
-                return '. ' + item
+            let text = definitionsList.map((item) => {
+                return '• ' + item
             })
 
             Object.assign(definition, {
                 header: head,
                 speech: speech,
-                text: text.join("<br />"),
+                text: text.join("<br /><br />"),
                 x: event.pageX,
                 y: event.pageY,
             })
@@ -55,11 +83,17 @@ function showSelection(event) {
             let parser = new DOMParser();
             let htmlDoc = parser.parseFromString(value, 'text/html');
             let images = Array.from(htmlDoc.getElementsByTagName('img'))
+            
+            // 針對 Bing 搜尋結果優化：優先找帶有 mimg class 的圖片
+            let bingImages = Array.from(htmlDoc.getElementsByClassName('mimg'))
+            if (bingImages.length > 0) {
+                images = bingImages
+            }
 
             // 優化圖片獲取：多種來源備選
             let validImages = []
             
-            // 嘗試獲取 dataset.src
+            // 嘗試獲取 dataset.src (Bing 有時會使用懶加載)
             validImages = images.filter(element => {
                 return element.dataset.src
             }).map((element) => {
@@ -69,18 +103,26 @@ function showSelection(event) {
             // 如果沒找到，嘗試 src 屬性
             if (validImages.length === 0) {
                 validImages = images.filter(element => {
-                    return element.src && !element.src.includes('data:image')
+                    let src = element.getAttribute('src')
+                    return src && !src.includes('data:image')
                 }).map((element) => {
-                    return element.src
+                    return element.getAttribute('src')
                 })
             }
             
-            // 過濾掉無效圖片
+            // 過濾並格式化圖片 URL
             validImages = validImages.filter(url => {
                 return url && 
                        !url.includes('placeholder') && 
-                       !url.includes('loading') &&
-                       (url.startsWith('http') || url.startsWith('//'))
+                       !url.includes('loading')
+            }).map(url => {
+                // 如果是相對路徑，補上 Bing 的網域
+                if (url.startsWith('/')) {
+                    return 'https://www.bing.com' + url
+                }
+                return url
+            }).filter(url => {
+                return url.startsWith('http') || url.startsWith('//')
             }).slice(0, 5) // 限制最多5張圖片
 
             definition.images = validImages
